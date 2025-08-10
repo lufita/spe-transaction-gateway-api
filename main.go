@@ -23,6 +23,14 @@ func main() {
 
 	srvCtl := controllers.NewServer(db.Pool)
 
+	rabbitmqURL := os.Getenv("RABBITMQ_URL")
+	queueName := os.Getenv("RABBITMQ_QUEUE_NAME")
+	if rabbitmqURL != "" && queueName != "" {
+		if err := srvCtl.InitRabbit(ctx, rabbitmqURL, queueName); err != nil {
+			log.Fatalf("rabbit init error: %v", err)
+		}
+	}
+
 	r, port := routers.Route(srvCtl)
 
 	httpSrv := &http.Server{

@@ -33,6 +33,7 @@ type InquiryRequest struct {
 type InquiryResponse struct {
 	Code               string  `json:"code"`
 	Message            string  `json:"message"`
+	Id                 string  `json:"id"`
 	RequestId          string  `json:"request_id"`
 	CustomerPan        string  `json:"customer_pan"`
 	Amount             float64 `json:"amount"`

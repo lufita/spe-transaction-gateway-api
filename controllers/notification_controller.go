@@ -133,6 +133,17 @@ func (s *Server) ProcessPaymentNotification(ctx context.Context, req tp.Notifica
 		return http.StatusInternalServerError, res, err
 	}
 
+	go func(trxID, msg string) {
+		pctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = s.PublishTrxEvent(pctx, TrxEvent{
+			TransactionID: trxID,
+			Message:       msg,
+			Source:        "transaction-notification",
+			Timestamp:     time.Now().UTC().Format(time.RFC3339),
+		})
+	}(data.Id, req.PaymentDescription)
+
 	res.Code = tp.SUCCESS_CODE
 	res.Message = "success"
 	return http.StatusOK, res, nil

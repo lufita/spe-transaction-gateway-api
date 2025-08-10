@@ -2,13 +2,20 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"net/http"
+	"spe-trx-gateway/config"
 	tp "spe-trx-gateway/lookup"
 	model "spe-trx-gateway/models"
+	"time"
 )
+
+func cacheKeyInquiry(req tp.InquiryRequest) string {
+	return "trx:status:" + req.BillingNumber + ":" + req.RequestId
+}
 
 func (s *Server) InquiryController(c *gin.Context) {
 	req := tp.InquiryRequest{}
@@ -54,6 +61,15 @@ func (s *Server) InquiryController(c *gin.Context) {
 		return
 	}
 
+	key := cacheKeyInquiry(req)
+	if cached, err := config.ReadRedis(key); err == nil && cached != "" {
+		var resp tp.InquiryResponse
+		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
+			c.JSON(http.StatusOK, resp)
+			return
+		}
+	}
+
 	httpResp, respBody, err := s.CheckTransaction(c.Request.Context(), req)
 	if err != nil {
 		res.Code = tp.INTERNAL_SERVER_ERROR
@@ -61,6 +77,25 @@ func (s *Server) InquiryController(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
+
+	if b, err := json.Marshal(respBody); err == nil {
+		_, _ = config.WriteRedis(key, string(b), 3*time.Hour)
+	}
+
+	go func(trxID string, msg tp.InquiryResponse) {
+
+		msgBytes, _ := json.Marshal(msg)
+		msgStr := string(msgBytes)
+
+		pctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = s.PublishTrxEvent(pctx, TrxEvent{
+			TransactionID: trxID,
+			Message:       msgStr,
+			Source:        "transaction-inquiry",
+			Timestamp:     time.Now().UTC().Format(time.RFC3339),
+		})
+	}(respBody.Id, respBody)
 
 	c.JSON(httpResp, respBody)
 	return
@@ -115,6 +150,7 @@ func (s *Server) CheckTransaction(ctx context.Context, req tp.InquiryRequest) (h
 
 	res.Code = tp.SUCCESS_CODE
 	res.Message = "success"
+	res.Id = data.Id.String
 	res.RequestId = data.RequestId.String
 	res.CustomerPan = data.CustomerPan.String
 	res.Amount = data.Amount.Float64
