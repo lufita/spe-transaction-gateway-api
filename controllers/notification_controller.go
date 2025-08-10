@@ -10,8 +10,6 @@ import (
 	"math/rand"
 	"net/http"
 	"regexp"
-	"spe-trx-gateway/config"
-
 	//"spe-trx-gateway/helper"
 	tp "spe-trx-gateway/lookup"
 	model "spe-trx-gateway/models"
@@ -26,18 +24,11 @@ func (s *Server) NotificationController(c *gin.Context) {
 	req := tp.NotificationRequest{}
 	res := tp.NotificationResponse{}
 
-	jti, clientID, akh := getClaims(c)
-	if jti == "" || clientID == "" || akh == "" {
+	_, clientID, akh := getClaims(c)
+	if clientID == "" || akh == "" {
 		res.Code = tp.UNAUTHORIZED_CODE
 		res.Message = "missing jwt claims"
 		c.JSON(http.StatusUnauthorized, res)
-		return
-	}
-
-	if _, err := config.ReadRedis("jwt:" + jti); err != nil {
-		res.Code = tp.UNAUTHORIZED_CODE
-		res.Message = "token "
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired or revoked"})
 		return
 	}
 
@@ -82,7 +73,7 @@ func (s *Server) NotificationController(c *gin.Context) {
 		return
 	}
 
-	httpResp, respBody, err := s.ProcessPaymentNotification(c.Request.Context(), req, "")
+	httpResp, respBody, err := s.ProcessPaymentNotification(c.Request.Context(), req, clientID)
 	if err != nil {
 		res.Code = tp.INTERNAL_SERVER_ERROR
 		res.Message = err.Error()

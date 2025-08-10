@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha512"
 	"crypto/subtle"
@@ -75,13 +76,20 @@ func SigNotificationMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		raw, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "read body failed"})
+			return
+		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(raw))
+
 		var body struct {
 			RequestID  string `json:"request_id"`
 			RRN        string `json:"rrn"`
 			MerchantID string `json:"merchant_id"`
 		}
-		if err := c.ShouldBindJSON(&body); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		if err := json.Unmarshal(raw, &body); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid body: bill_number required"})
 			return
 		}
 		// rekonstruksi payload sesuai spesifikasi
@@ -95,9 +103,6 @@ func SigNotificationMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid signature"})
 			return
 		}
-
-		raw, _ := json.Marshal(body)
-		c.Request.Body = io.NopCloser(strings.NewReader(string(raw)))
 
 		c.Next()
 	}
@@ -117,11 +122,18 @@ func SigInquiryMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		raw, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "read body failed"})
+			return
+		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(raw))
+
 		var body struct {
 			BillNumber string `json:"bill_number"`
 		}
-		if err := c.ShouldBindJSON(&body); err != nil || body.BillNumber == "" {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		if err := json.Unmarshal(raw, &body); err != nil || strings.TrimSpace(body.BillNumber) == "" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid body: bill_number required"})
 			return
 		}
 
@@ -135,9 +147,6 @@ func SigInquiryMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid signature"})
 			return
 		}
-
-		raw, _ := json.Marshal(body)
-		c.Request.Body = io.NopCloser(strings.NewReader(string(raw)))
 		c.Next()
 	}
 }

@@ -85,7 +85,9 @@ func (s *Server) CheckTransaction(ctx context.Context, req tp.InquiryRequest) (h
 		    t.payment_status,
 		    t.payment_description
 		FROM transactions t
-		WHERE t.request_id = $1 AND t.number_billing = $2 LIMIT 1`, req.RequestId, req.BillingNumber).
+		WHERE t.request_id = $1 AND t.number_billing = $2
+		AND t.transaction_datetime::date = now()::date
+		LIMIT 1`, req.RequestId, req.BillingNumber).
 		Scan(
 			&data.Id,
 			&data.NumberBilling,
