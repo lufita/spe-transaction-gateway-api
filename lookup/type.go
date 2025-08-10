@@ -26,7 +26,7 @@ type NotificationResponse struct {
 }
 
 type InquiryRequest struct {
-	RequestId     string `json:"request_id" validate:"required,max=32"`
+	RequestId     string `json:"request_id" validate:"required"`
 	BillingNumber string `json:"bill_number" validate:"required"`
 }
 

@@ -10,20 +10,21 @@ import (
 func WebRoute(router *gin.Engine, s *controllers.Server) {
 	internal := router.Group("/api/v1/internal")
 	{
-		internal.POST("/hash-notification")
-		internal.POST("/hash-inquiry")
+		internal.POST("hash-api-key", controllers.InternalHashRegister)
+		internal.POST("/hash-notification", controllers.InternalHashNotification)
+		internal.POST("/hash-inquiry", controllers.InternalHashInquiry)
 	}
 
 	register := router.Group("/api/v1/register")
 	{
-		register.POST("/get-auth", controllers.RegisterController)
+		register.POST("/get-auth", s.RegisterController)
 	}
 
 	payment := router.Group("/api/v1/payment")
 	payment.Use(middlewares.SignatureMiddleware())
 	{
-		payment.POST("/transaction-notification", s.NotificationController)
-		payment.POST("/check-status", s.InquiryController)
+		payment.POST("/transaction-notification", middlewares.SigNotificationMiddleware(), s.NotificationController)
+		payment.POST("/check-status", middlewares.SigInquiryMiddleware(), s.InquiryController)
 	}
 }
 

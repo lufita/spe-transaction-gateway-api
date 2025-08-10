@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"os"
+	"spe-trx-gateway/lookup"
 	"time"
 )
 
@@ -12,8 +12,8 @@ type DB struct {
 }
 
 func NewDB(ctx context.Context) (*DB, error) {
-	dsn := os.Getenv("DB_CONNECTION_STRING")
-	cfg, err := pgxpool.ParseConfig(dsn)
+	url := lookup.DbConnString
+	cfg, err := pgxpool.ParseConfig(url)
 	if err != nil {
 		return nil, err
 	}

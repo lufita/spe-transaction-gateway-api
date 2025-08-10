@@ -10,6 +10,8 @@ import (
 	"math/rand"
 	"net/http"
 	"regexp"
+	"spe-trx-gateway/config"
+
 	//"spe-trx-gateway/helper"
 	tp "spe-trx-gateway/lookup"
 	model "spe-trx-gateway/models"
@@ -24,20 +26,55 @@ func (s *Server) NotificationController(c *gin.Context) {
 	req := tp.NotificationRequest{}
 	res := tp.NotificationResponse{}
 
+	jti, clientID, akh := getClaims(c)
+	if jti == "" || clientID == "" || akh == "" {
+		res.Code = tp.UNAUTHORIZED_CODE
+		res.Message = "missing jwt claims"
+		c.JSON(http.StatusUnauthorized, res)
+		return
+	}
+
+	if _, err := config.ReadRedis("jwt:" + jti); err != nil {
+		res.Code = tp.UNAUTHORIZED_CODE
+		res.Message = "token "
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "token expired or revoked"})
+		return
+	}
+
+	_, err := s.ValidateAccess(c.Request.Context(), clientID, akh)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrClientNotFound):
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "client not found"
+			c.JSON(http.StatusUnauthorized, res)
+			return
+		case errors.Is(err, ErrClientInactive):
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "client disabled"
+			c.JSON(http.StatusUnauthorized, res)
+			return
+		case errors.Is(err, ErrFingerprintMismatch):
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "token no longer valid"
+			c.JSON(http.StatusUnauthorized, res)
+			return
+		default:
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "db error"
+			c.JSON(http.StatusInternalServerError, res)
+			return
+		}
+	}
+
 	if err := c.ShouldBind(&req); err != nil {
 		res.Code = tp.INTERNAL_SERVER_ERROR
 		res.Message = err.Error()
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	//if err := helper.ValidateNotification(&req, c.GetHeader("X-Signature")); err != nil {
-	//	res.Code = tp.UNAUTHORIZED_CODE
-	//	res.Message = err.Error()
-	//	c.JSON(http.StatusUnauthorized, res)
-	//	return
-	//}
 
-	err := validateAmount(req.Amount)
+	err = validateAmount(req.Amount)
 	if err != nil {
 		res.Code = tp.BAD_REQUEST
 		res.Message = "invalid amount: " + err.Error()

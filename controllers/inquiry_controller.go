@@ -14,18 +14,45 @@ func (s *Server) InquiryController(c *gin.Context) {
 	req := tp.InquiryRequest{}
 	res := tp.InquiryResponse{}
 
+	_, IDclient, fpr := getClaims(c) // get IdClient and Fingerprint from Claims Set
+	if IDclient == "" || fpr == "" {
+		res.Code = tp.INTERNAL_SERVER_ERROR
+		res.Message = "missing jwt claims"
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	if _, err := s.ValidateAccess(c.Request.Context(), IDclient, fpr); err != nil {
+		switch {
+		case errors.Is(err, ErrClientNotFound):
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "client not found"
+			c.JSON(http.StatusUnauthorized, res)
+			return
+		case errors.Is(err, ErrClientInactive):
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "client has been inactive"
+			c.JSON(http.StatusUnauthorized, res)
+			return
+		case errors.Is(err, ErrFingerprintMismatch):
+			res.Code = tp.UNAUTHORIZED_CODE
+			res.Message = "token no longer valid"
+			c.JSON(http.StatusUnauthorized, res)
+			return
+		default:
+			res.Code = tp.INTERNAL_SERVER_ERROR
+			res.Message = "db error"
+			c.JSON(http.StatusInternalServerError, res)
+			return
+		}
+	}
+
 	if err := c.ShouldBind(&req); err != nil {
 		res.Code = tp.INTERNAL_SERVER_ERROR
 		res.Message = err.Error()
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	//if err := helper.ValidateInquiry(&req, c.GetHeader("X-Signature")); err != nil {
-	//	res.Code = tp.UNAUTHORIZED_CODE
-	//	res.Message = err.Error()
-	//	c.JSON(http.StatusUnauthorized, res)
-	//	return
-	//}
 
 	httpResp, respBody, err := s.CheckTransaction(c.Request.Context(), req)
 	if err != nil {
