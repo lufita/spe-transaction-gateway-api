@@ -1,0 +1,20 @@
+﻿version: "3.9"
+services:
+  spe-trx-gateway:
+    image: spe-transaction-gateway-api:latest
+    container_name: spx-transaction-gateway-api
+    ports:
+      - "9191:9191"
+    environment:
+      AUTHORIZATION_TOKEN_SECRET: 486afef65e27de466e12c2750d689208
+      REGISTER_SECRET: jVTDJDBCCZYgkXibmoNvFKipw
+      APP_MODE: debug
+      HTTP_PORT: 9191
+      DB_CONNECTION_STRING: postgresql://user_sa:adminsa@host.docker.internal:5432/local_db?sslmode=disable
+      NOTIF_SIGNING_SECRET: speskilltest
+      INQUIRY_SIGN_SECRET: speskilltest
+      REDIS_HOST: host.docker.internal
+      REDIS_PORT: 6379
+      RABBITMQ_URL: amqp://admin:admin@host.docker.internal:5672/
+      RABBITMQ_QUEUE_NAME: trx_events
+    restart: unless-stopped

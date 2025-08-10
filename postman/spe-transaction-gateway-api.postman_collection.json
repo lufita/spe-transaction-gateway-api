@@ -1,0 +1,233 @@
+{
+	"info": {
+		"_postman_id": "e1388edd-38f6-4598-8730-57c5ae0de83c",
+		"name": "spe-transaction-gateway-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13213539"
+	},
+	"item": [
+		{
+			"name": "Internal",
+			"item": [
+				{
+					"name": "HashGenerator Api Key",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"bill_number\": \"20250809171042571927\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9191/api/v1/internal/hash-api-key",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9191",
+							"path": [
+								"api",
+								"v1",
+								"internal",
+								"hash-api-key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "HashGenerator Check Transaction Status",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"bill_number\": \"20250809171042571927\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9191/api/v1/internal/hash-inquiry",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9191",
+							"path": [
+								"api",
+								"v1",
+								"internal",
+								"hash-inquiry"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "HashGenerator Notification",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"request_id\": \"XwVjF5zfuHhrDZTT\",\r\n    \"rrn\": \"123456789000\",\r\n    \"merchant_id\": \"888800223497\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9191/api/v1/internal/hash-notification",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9191",
+							"path": [
+								"api",
+								"v1",
+								"internal",
+								"hash-notification"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transaction Notification",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJha2giOiJsREQxcmZ6dUlIOHdYRENVVjlsRnFDaHJyeDREUFJsUjN4aVVvNkVYRzJYRE90eFNKeldWbzNqTHNGU0xUME1scyttQzc3Z0RpemR6MnNZUkZYZmlkQT09IiwiYXBpX2NsaWVudF9pZCI6IjNmNzk3NjgwLTY2NGYtNGEwZi1hYTc1LTM0N2FhMjg2NmQ1MSIsImNsaWVudF9pZCI6ImFwaS10b2tvcGVyc2lhIiwiZXhwIjoxNzU0ODA4NzczLCJpYXQiOjE3NTQ4MDUxNzMsImp0aSI6IjZjYjA0MWI5LTU5NjAtNGQ1NS1iMDE2LThiZGJkNTRkODdlYyIsInJsIjo2MCwic3ViIjoiM2Y3OTc2ODAtNjY0Zi00YTBmLWFhNzUtMzQ3YWEyODY2ZDUxIn0.KpK7sZfqy54b3P11FyYPFME2TwIY5sLJq-xc12L98VY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Signature",
+						"value": "kMpgda5BD1HCBX0vLVBSJhS7Zlsm1hC5D/G65JFONCXf14zYcQcC0rdUuCf12exrLtSdikm2ofNpklNrlw3iuQ==",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"request_id\": \"XwVjF5zfuHhrDZTT\",\r\n  \"customer_pan\": \"9360001110000123019\",\r\n  \"amount\": \"130000.00\",\r\n  \"transaction_datetime\": \"2025-08-10T13:36:13\",\r\n  \"rrn\": \"123456789000\",\r\n  \"customer_name\": \"Rafi Ahmad\",\r\n  \"merchant_id\": \"888800223497\",\r\n  \"merchant_name\": \"Kaos Keren Anak Muda\",\r\n  \"merchant_city\": \"Jakarta Selatan\",\r\n  \"currency_code\": \"360\",\r\n  \"payment_status\": \"000\",\r\n  \"payment_description\": \"Payment Success\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9191/api/v1/payment/transaction-notification",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9191",
+					"path": [
+						"api",
+						"v1",
+						"payment",
+						"transaction-notification"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Transaction Status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJha2giOiI3MzRiYjdmNTFlOTg1YjM5NGZiNTVhOTA0YTQwNTc1ODU3ZmM4MmNiNzU5OTZlZGVkMmFmYTI1NzI4ZDYyZjdhIiwiYXBpX2NsaWVudF9pZCI6IjNmNzk3NjgwLTY2NGYtNGEwZi1hYTc1LTM0N2FhMjg2NmQ1MSIsImNsaWVudF9pZCI6ImFwaS10b2tvcGVyc2lhIiwiZXhwIjoxNzU0ODA4MTgyLCJpYXQiOjE3NTQ4MDQ1ODIsImp0aSI6Ijk4ZTU0YmJkLWRhZGQtNDdiNi04ZTFmLWMxMjA0OGUwODBiZiIsInJsIjo2MCwic3ViIjoiM2Y3OTc2ODAtNjY0Zi00YTBmLWFhNzUtMzQ3YWEyODY2ZDUxIn0.Voopk74NM79J7a206ytuJ2bC98kIL0_V7Mv4Vi81Qb8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Signature",
+						"value": "Qm5aTNumDOXZhGdinNVyv/Gj4pqvk0uT3osDhBc1/jQC2muDmk2fcbOQ9Hf0BSnIpUSEw0a/xyIBQK0ij0Kg/Q==",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"request_id\": \"XwVjF5zfuHhrDZuw\",\r\n    \"bill_number\": \"20250809171042571927\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9191/api/v1/payment/check-status",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9191",
+					"path": [
+						"api",
+						"v1",
+						"payment",
+						"check-status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Access",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"api_key\": \"kzdTQcGAPjgXBWk\",\r\n    \"client_id\": \"api-tokopersia\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9191/api/v1/register/get-auth",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9191",
+					"path": [
+						"api",
+						"v1",
+						"register",
+						"get-auth"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
